@@ -2,7 +2,7 @@ CREATE TABLE sites (
     id               SERIAL PRIMARY KEY,
     domain_name      TEXT   NOT NULL    UNIQUE,
     total            INT,
-    user_id          INT    REFERENCES  users(id)
+    person_id        INT    REFERENCES  persons(id)
 );
 
 CREATE TABLE links (

@@ -7,8 +7,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.job4j.shortcut.entity.ERole;
+import ru.job4j.shortcut.entity.PersonEntity;
 import ru.job4j.shortcut.entity.RoleEntity;
-import ru.job4j.shortcut.entity.UserEntity;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,52 +19,52 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class UserRoleRepositoryTest {
+class PersonRoleRepositoryTest {
 
     @Autowired
-    private UserRepository userRepository;
+    private PersonRepository personRepository;
 
     @Autowired
     private RoleRepository roleRepository;
 
     @BeforeEach
     public void deleteAllBefore() {
-        userRepository.deleteAll();
+        personRepository.deleteAll();
         roleRepository.deleteAll();
     }
 
     @AfterAll
     public void deleteAllAfterAll() {
-        userRepository.deleteAll();
+        personRepository.deleteAll();
         roleRepository.deleteAll();
     }
 
     @Test
     public void whenDontSaveThenNothingFound() {
-        Optional<UserEntity> optionalUser = userRepository.findById(1);
+        Optional<PersonEntity> optionalUser = personRepository.findById(1);
 
         assertThat(optionalUser).isEmpty();
     }
 
     @Test
     void whenSaveSeveralThenFindByFullName() {
-        UserEntity user1 = UserEntity.builder()
-                .email("email1@email.")
+        PersonEntity person1 = PersonEntity.builder()
+                .username("username1")
                 .password("password1").build();
-        UserEntity user2 = UserEntity.builder()
-                .email("email2@email.")
+        PersonEntity person2 = PersonEntity.builder()
+                .username("username2")
                 .password("password2").build();
-        UserEntity user3 = UserEntity.builder()
-                .email("email3@email.")
+        PersonEntity person3 = PersonEntity.builder()
+                .username("username3")
                 .password("password3").build();
-        List.of(user3, user1, user2).forEach(userRepository::save);
+        List.of(person3, person1, person2).forEach(personRepository::save);
 
-        Optional<UserEntity> optionalFoundedUser =
-                userRepository.findByEmail(user2.getEmail());
+        Optional<PersonEntity> optionalFoundedUser =
+                personRepository.findByUsername(person2.getUsername());
 
         assertThat(optionalFoundedUser).isPresent();
-        assertThat(optionalFoundedUser.get().getEmail())
-                .isEqualTo(user2.getEmail());
+        assertThat(optionalFoundedUser.get().getUsername())
+                .isEqualTo(person2.getUsername());
     }
 
     @Test
@@ -73,21 +73,21 @@ class UserRoleRepositoryTest {
         RoleEntity role2 = RoleEntity.builder().title(ERole.ROLE_USER).build();
         List.of(role2, role1).forEach(roleRepository::save);
 
-        UserEntity user1 = UserEntity.builder()
-                .email("email1@email.")
+        PersonEntity person1 = PersonEntity.builder()
+                .username("username1")
                 .password("password1").build();
-        user1.setRoleEntities(Set.of(role2));
-        UserEntity user2 = UserEntity.builder()
-                .email("email2@email.")
+        person1.setRoles(Set.of(role2));
+        PersonEntity person2 = PersonEntity.builder()
+                .username("username2")
                 .password("password2").build();
-        user2.setRoleEntities(Set.of(role2, role1));
-        List.of(user2, user1).forEach(userRepository::save);
+        person2.setRoles(Set.of(role2, role1));
+        List.of(person2, person1).forEach(personRepository::save);
 
-        Optional<UserEntity> optionalFoundedUser =
-                userRepository.findByEmail(user2.getEmail());
+        Optional<PersonEntity> optionalFoundedUser =
+                personRepository.findByUsername(person2.getUsername());
 
         assertThat(optionalFoundedUser).isPresent();
-        assertEquals(2, optionalFoundedUser.get().getRoleEntities().size());
+        assertEquals(2, optionalFoundedUser.get().getRoles().size());
 
     }
 }

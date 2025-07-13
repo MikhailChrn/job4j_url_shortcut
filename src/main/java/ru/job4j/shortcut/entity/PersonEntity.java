@@ -12,24 +12,24 @@ import java.util.Set;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"email"})
-@Table (name = "users")
-public class UserEntity {
+@EqualsAndHashCode(of = {"username"})
+@Table (name = "persons")
+public class PersonEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @NotBlank
-    @Column(name = "email", unique = true)
-    private String email;
+    @Column(name = "username", unique = true)
+    private String username;
 
     @NotBlank
     @Column(name = "password")
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "users_roles", joinColumns = @JoinColumn(name = "user_id"),
+    @JoinTable(name = "persons_roles", joinColumns = @JoinColumn(name = "persons_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<RoleEntity> roleEntities = new HashSet<>();
+    private Set<RoleEntity> roles = new HashSet<>();
 
 }

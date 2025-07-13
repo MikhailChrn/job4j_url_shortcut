@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class MyRestController {
 
-    @GetMapping("/hellow")
+    @GetMapping("/test")
     @ResponseStatus(HttpStatus.OK)
-    public String getAllRepositories() {
+    public String hello() {
 
-        return "hellow";
+        return "hello";
     }
 }

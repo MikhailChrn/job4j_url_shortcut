@@ -24,7 +24,7 @@ public class SiteEntity {
     private Integer total;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
+    @JoinColumn(name = "person_id")
+    private PersonEntity person;
 
 }

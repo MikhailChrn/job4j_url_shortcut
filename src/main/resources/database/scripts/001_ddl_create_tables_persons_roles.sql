@@ -1,16 +1,16 @@
-CREATE TABLE users (
+CREATE TABLE persons (
     id               SERIAL PRIMARY KEY,
-    email            TEXT   NOT NULL    UNIQUE,
+    username         TEXT   NOT NULL    UNIQUE,
     password         TEXT
 );
 
 CREATE TABLE roles (
     id              SERIAL PRIMARY KEY,
-    title           TEXT    UNIQUE
+    title           TEXT   UNIQUE
 );
 
-CREATE TABLE users_roles (
+CREATE TABLE persons_roles (
     id              SERIAL PRIMARY KEY,
-    user_id         INT    NOT NULL REFERENCES  users(id),
+    person_id       INT    NOT NULL REFERENCES  persons(id),
     role_id         INT    NOT NULL REFERENCES  roles(id)
 );

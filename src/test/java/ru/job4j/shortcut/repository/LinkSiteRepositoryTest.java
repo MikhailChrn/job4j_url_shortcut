@@ -7,8 +7,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.job4j.shortcut.entity.LinkEntity;
+import ru.job4j.shortcut.entity.PersonEntity;
 import ru.job4j.shortcut.entity.SiteEntity;
-import ru.job4j.shortcut.entity.UserEntity;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class LinkSiteRepositoryTest {
 
     @Autowired
-    private UserRepository userRepository;
+    private PersonRepository personRepository;
 
     @Autowired
     private SiteRepository siteRepository;
@@ -33,14 +33,14 @@ class LinkSiteRepositoryTest {
     public void deleteAllBefore() {
         linkRepository.deleteAll();
         siteRepository.deleteAll();
-        userRepository.deleteAll();
+        personRepository.deleteAll();
     }
 
     @AfterAll
     public void deleteAllAfterAll() {
         linkRepository.deleteAll();
         siteRepository.deleteAll();
-        userRepository.deleteAll();
+        personRepository.deleteAll();
     }
 
     @Test
@@ -52,17 +52,17 @@ class LinkSiteRepositoryTest {
 
     @Test
     public void whenSaveOneUserTwoSiteAndFourLinkThenGetAllEntities() {
-        UserEntity user = UserEntity.builder()
-                .email("email1@email.ru")
+        PersonEntity person = PersonEntity.builder()
+                .username("username1")
                 .password("password1").build();
-        userRepository.save(user);
+        personRepository.save(person);
 
         SiteEntity site1 = SiteEntity.builder()
                 .domainName("job4j.ru")
-                .user(user).build();
+                .person(person).build();
         SiteEntity site2 = SiteEntity.builder()
                 .domainName("github.com")
-                .user(user).build();
+                .person(person).build();
         List.of(site2, site1).forEach(siteRepository::save);
 
         LinkEntity link1 = LinkEntity.builder()
@@ -79,13 +79,13 @@ class LinkSiteRepositoryTest {
                 .site(site2).build();
         List.of(link3, link1, link4, link2).forEach(linkRepository::save);
 
-        Optional<UserEntity> foundedOptionalUser =
+        Optional<PersonEntity> foundedOptionalUser =
                 Optional.of(
                         linkRepository.findAllByOriginalUrl(link3.getOriginalUrl()).get()
-                                .getSite().getUser());
+                                .getSite().getPerson());
 
         assertTrue(foundedOptionalUser.isPresent());
-        assertThat(foundedOptionalUser.get().getEmail()).isEqualTo(user.getEmail());
+        assertThat(foundedOptionalUser.get().getUsername()).isEqualTo(person.getUsername());
     }
 
 }
