@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+
+      xmlns:sec="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Main page</title>
+</head>
+
+<body>
+    <a href="/logout">Logout</a>
+
+    <h1>Welcome!</h1>
+
+    <div th:text="${message}"></div>
+
+    <div sec:authorize="hasRole('USER')">Этот текст виден только пользователю с ролью USER.</div>
+    <div sec:authorize="hasRole('ADMIN')">Этот текст виден только пользователю с ролью ADMIN.</div>
+
+<a href="/admin">Admin page here</a>
+
+</body>
+</html>

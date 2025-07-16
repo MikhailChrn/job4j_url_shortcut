@@ -28,8 +28,16 @@ public class PersonEntity {
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "persons_roles", joinColumns = @JoinColumn(name = "persons_id"),
+    @JoinTable(name = "persons_roles", joinColumns = @JoinColumn(name = "person_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<RoleEntity> roles = new HashSet<>();
+
+    public void addRole(RoleEntity role) {
+        roles.add(role);
+    }
+
+    public void removeRole(RoleEntity role) {
+        roles.remove(role);
+    }
 
 }
