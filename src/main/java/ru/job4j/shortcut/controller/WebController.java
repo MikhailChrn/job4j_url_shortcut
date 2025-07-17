@@ -13,7 +13,14 @@ public class WebController {
      * ПРИМЕР ХАБР
      * https://habr.com/ru/articles/916672/
      *
-     * @return login.html, хранящийся в папке templates
+     * Для авторизации через HTML форму (.loginProcessingUrl("/process-login")) в Postman,
+     * нужно отправить POST-запрос на URL формы, передав данные авторизации в теле запроса
+     * (обычно в формате x-www-form-urlencoded).
+     * После успешной авторизации, сервер может вернуть cookie или токен,
+     * которые нужно будет использовать в последующих запросах.
+     * Пример:
+     * JSESSIONID
+     * 1CF82E1983E18EE674023167E2B7F6D2
      */
 
     @GetMapping("/login")

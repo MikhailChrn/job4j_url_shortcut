@@ -16,4 +16,11 @@ public class MyRestController {
 
         return "hello";
     }
+
+    @GetMapping("/http/test")
+    @ResponseStatus(HttpStatus.OK)
+    public String httpAuthTest() {
+
+        return "successful httpAuthTest";
+    }
 }
