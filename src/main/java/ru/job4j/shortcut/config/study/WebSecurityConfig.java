@@ -1,15 +1,10 @@
-package ru.job4j.shortcut.config;
+package ru.job4j.shortcut.config.study;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -23,13 +18,15 @@ import org.springframework.security.web.SecurityFilterChain;
  * (например, доступ к определённым URL'ам, настройка авторизации, форм логина и др.).
  *
  * 💡 Назначение обеих аннотаций не перекрывается, а дополняет друг друга.
+ *
+ * @Configuration
+ * @EnableWebSecurity
  */
 
-@Configuration
-@EnableWebSecurity
 public class WebSecurityConfig {
     /**
      * formLogin конфигурация
+     *
      *  * .loginProcessingUrl("/perform_login")
      *  * Указывает URL, на который отправляется POST-запрос с логином и паролем.
      *  * Это POST-запрос, который отправляется с формы входа.
@@ -65,10 +62,12 @@ public class WebSecurityConfig {
 
     /**
      * httpBasic конфигурация
+     *
      * Пример авторизации в запросе
      * Authorization: Basic <base64(username:password)>
+     * @Bean
      */
-    @Bean
+
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -83,12 +82,16 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-    @Bean
+    /**
+     * @Bean
+     */
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
+    /**
+     * @Bean
+     */
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }

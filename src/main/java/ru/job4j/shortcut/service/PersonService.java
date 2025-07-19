@@ -1,10 +1,10 @@
 package ru.job4j.shortcut.service;
 
-import ru.job4j.shortcut.dto.request.SignupRequestDTO;
-import ru.job4j.shortcut.dto.response.RegisterResponseDTO;
+import ru.job4j.shortcut.dto.request.SignupUserRequestDTO;
+import ru.job4j.shortcut.dto.response.RegisterUserResponseDTO;
 
 public interface PersonService {
 
-    RegisterResponseDTO signUp(SignupRequestDTO signUpRequest);
+    RegisterUserResponseDTO signUp(SignupUserRequestDTO signUpRequest);
 
 }

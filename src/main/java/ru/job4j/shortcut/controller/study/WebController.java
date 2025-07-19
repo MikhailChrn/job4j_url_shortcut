@@ -1,4 +1,4 @@
-package ru.job4j.shortcut.controller;
+package ru.job4j.shortcut.controller.study;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
