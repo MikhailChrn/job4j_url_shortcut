@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -81,11 +81,74 @@ class LinkSiteRepositoryTest {
 
         Optional<PersonEntity> foundedOptionalUser =
                 Optional.of(
-                        linkRepository.findAllByOriginalUrl(link3.getOriginalUrl()).get()
+                        linkRepository.findByOriginalUrl(link3.getOriginalUrl()).get()
                                 .getSite().getPerson());
 
         assertTrue(foundedOptionalUser.isPresent());
         assertThat(foundedOptionalUser.get().getUsername()).isEqualTo(person.getUsername());
     }
 
+    @Test
+    public void whenCheckSiteByDomainNameAndPersonThenGetCorrectResults() {
+        PersonEntity person1 = PersonEntity.builder()
+                .username("username1")
+                .password("password1").build();
+        PersonEntity person2 = PersonEntity.builder()
+                .username("username2")
+                .password("password2").build();
+        List.of(person2, person1).forEach(personRepository::save);
+
+        SiteEntity site1 = SiteEntity.builder()
+                .domainName("job4j.ru")
+                .person(person2).build();
+        SiteEntity site2 = SiteEntity.builder()
+                .domainName("github.com")
+                .person(person1).build();
+        List.of(site2, site1).forEach(siteRepository::save);
+
+        assertFalse(siteRepository.existsByDomainNameAndPersonId(site1.getDomainName(), site2.getPerson().getId()));
+        assertFalse(siteRepository.existsByDomainNameAndPersonId(site2.getDomainName(), site1.getPerson().getId()));
+        assertTrue(siteRepository.existsByDomainNameAndPersonId(site2.getDomainName(), site2.getPerson().getId()));
+        assertTrue(siteRepository.existsByDomainNameAndPersonId(site1.getDomainName(), site1.getPerson().getId()));
+    }
+
+    @Test
+    public void whenCheckLinkByOriginalUrlThenGetCorrectResult() {
+        PersonEntity person1 = PersonEntity.builder()
+                .username("username1").password("password1").build();
+        PersonEntity person2 = PersonEntity.builder()
+                .username("username2").password("password2").build();
+        List.of(person2, person1).forEach(personRepository::save);
+
+        SiteEntity site1 = SiteEntity.builder()
+                .domainName("job4j.ru").person(person2).build();
+        SiteEntity site2 = SiteEntity.builder()
+                .domainName("github.com").person(person1).build();
+        List.of(site2, site1).forEach(siteRepository::save);
+
+        LinkEntity link11 = LinkEntity.builder()
+                .originalUrl("https://job4j.ru/exercise/216/task/1219/547426")
+                .site(site1).build();
+        LinkEntity link12 = LinkEntity.builder()
+                .originalUrl("https://job4j.ru/exercise/214/task-view/1214")
+                .site(site1).build();
+        LinkEntity link21 = LinkEntity.builder()
+                .originalUrl("https://github.com/MikhailChrn/job4j_github_analysis/commits/master/")
+                .site(site1).build();
+        LinkEntity link22 = LinkEntity.builder()
+                .originalUrl("https://github.com/MikhailChrn/job4j_url_shortcut/commits/main/")
+                .site(site1).build();
+        List.of(link22, link11, link21, link12).forEach(linkRepository::save);
+
+        link11.setCode("code11");
+        link12.setCode("code12");
+        link21.setCode("code21");
+        link22.setCode("code22");
+        List.of(link22, link11, link21, link12).forEach(linkRepository::save);
+
+        assertTrue(linkRepository.existsByOriginalUrl(link21.getOriginalUrl()));
+        assertFalse(linkRepository.existsByOriginalUrl(link21.getOriginalUrl() + "/plus"));
+        PersonEntity person21 = linkRepository.findByCode(link21.getCode()).get().getSite().getPerson();
+        assertEquals(person21, person2);
+    }
 }

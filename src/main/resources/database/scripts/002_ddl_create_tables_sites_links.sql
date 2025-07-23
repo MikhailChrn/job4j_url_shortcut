@@ -7,8 +7,8 @@ CREATE TABLE sites (
 
 CREATE TABLE links (
     id               SERIAL PRIMARY KEY,
-    orig_url         TEXT,
-    resp_key         TEXT,
+    code             TEXT   UNIQUE,
+    orig_url         TEXT   NOT NULL    UNIQUE,
     total            INT,
     site_id          INT    REFERENCES  sites(id)
 );

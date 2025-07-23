@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -89,5 +89,25 @@ class PersonRoleRepositoryTest {
         assertThat(optionalFoundedUser).isPresent();
         assertEquals(2, optionalFoundedUser.get().getRoles().size());
 
+    }
+
+    @Test
+    void whenCheckUserRoleThenGetConfirm() {
+        RoleEntity roleUser = RoleEntity.builder().title(ERole.ROLE_USER).build();
+        RoleEntity roleAdmin = RoleEntity.builder().title(ERole.ROLE_ADMIN).build();
+        List.of(roleAdmin, roleUser).forEach(roleRepository::save);
+
+        PersonEntity person1 = PersonEntity.builder()
+                .username("username1")
+                .password("password1").build();
+        person1.setRoles(Set.of(roleUser));
+        PersonEntity person2 = PersonEntity.builder()
+                .username("username2")
+                .password("password2").build();
+        person2.setRoles(Set.of(roleUser, roleAdmin));
+        List.of(person2, person1).forEach(personRepository::save);
+
+        assertFalse(personRepository.hasRole(person1.getUsername(), ERole.ROLE_ADMIN.name()));
+        assertTrue(personRepository.hasRole(person2.getUsername(), ERole.ROLE_ADMIN.name()));
     }
 }

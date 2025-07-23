@@ -21,8 +21,8 @@ public class LinkEntity {
     @Column(name = "orig_url", unique = true)
     private String originalUrl;
 
-    @Column(name = "resp_key")
-    private String responseKey;
+    @Column(name = "code", unique = true)
+    private String code;
 
     @Column(name = "total")
     private Integer total;

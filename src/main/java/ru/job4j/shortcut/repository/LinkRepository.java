@@ -9,5 +9,10 @@ import java.util.Optional;
 @Repository
 public interface LinkRepository extends JpaRepository<LinkEntity, Integer> {
 
-    Optional<LinkEntity> findAllByOriginalUrl(String originalUrl);
+    Optional<LinkEntity> findByOriginalUrl(String originalUrl);
+
+    Optional<LinkEntity> findByCode(String code);
+
+    boolean existsByOriginalUrl(String originalUrl);
+
 }

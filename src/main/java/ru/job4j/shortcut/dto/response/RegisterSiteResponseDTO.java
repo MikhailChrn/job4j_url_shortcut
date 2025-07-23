@@ -9,8 +9,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RegisterSiteResponseDTO {
 
+    /**
+     * Флаг 'status' указывает, что регистрация выполнена или нет,
+     * false - если сайт у данного пользователя уже есть в системе.
+     */
     private boolean status;
 
-    private String message;
+    private String domainName;
+
+    private String ownerName;
 
 }

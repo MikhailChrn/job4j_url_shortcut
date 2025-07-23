@@ -3,6 +3,9 @@ package ru.job4j.shortcut.service.impl;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.job4j.shortcut.dto.request.SignupUserRequestDTO;
@@ -20,7 +23,7 @@ import java.util.function.Supplier;
 
 @Service
 @AllArgsConstructor
-public class PersonServiceRegular implements PersonService {
+public class PersonServiceImpl implements PersonService {
 
     @Autowired
     private PasswordEncoder encoder;
@@ -67,5 +70,13 @@ public class PersonServiceRegular implements PersonService {
 
         return new RegisterUserResponseDTO(HttpStatus.OK,
                 String.format("Person '%s' registered successfully!", person.getUsername()));
+    }
+
+    /**
+     * Метод проверяет наличие роли
+     */
+    @Override
+    public boolean hasRole(String username, ERole role) {
+        return personRepository.hasRole(username, role.name());
     }
 }

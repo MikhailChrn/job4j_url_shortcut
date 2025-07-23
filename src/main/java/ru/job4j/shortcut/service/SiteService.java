@@ -7,9 +7,9 @@ import ru.job4j.shortcut.dto.response.StatisticResponseDto;
 
 public interface SiteService {
 
-    RegisterSiteResponseDTO registerSite(UrlRequestDTO urlRequestDTO);
+    RegisterSiteResponseDTO registerSite(UrlRequestDTO urlRequestDTO, String username);
 
-    ConvertLinkResponseDTO convertLink(UrlRequestDTO urlRequestDTO);
+    ConvertLinkResponseDTO convertLink(UrlRequestDTO urlRequestDTO, String username);
 
     String getOriginalLink(String code);
 
