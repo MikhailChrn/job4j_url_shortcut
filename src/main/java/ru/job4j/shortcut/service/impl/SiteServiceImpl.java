@@ -46,13 +46,13 @@ public class SiteServiceImpl implements SiteService {
     @Transactional
     public RegisterSiteResponseDTO registerSite(UrlRequestDTO urlRequestDTO, String username) {
         Optional<PersonEntity> personOptional = personRepository.findByUsername(username);
+        String domainName = getDomainFromURL(urlRequestDTO.getUrl());
 
-        if (siteRepository.existsByDomainNameAndPersonId(
-                getDomainFromURL(urlRequestDTO.getUrl()),
-                personOptional.get().getId())) {
+        if (siteRepository.existsByDomainNameAndPersonId(domainName, personOptional.get().getId())) {
+            SiteEntity site = siteRepository.findByDomainName(domainName).get();
             return new RegisterSiteResponseDTO(false,
-                    urlRequestDTO.getUrl(),
-                    personOptional.get().getUsername());
+                    site.getDomainName(),
+                    site.getPerson().getUsername());
         }
 
         PersonEntity person = personRepository.findByUsername(username).get();

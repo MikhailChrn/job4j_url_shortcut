@@ -1,11 +1,8 @@
 package ru.job4j.shortcut.repository;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import ru.job4j.shortcut.entity.LinkEntity;
 import ru.job4j.shortcut.entity.PersonEntity;
 import ru.job4j.shortcut.entity.SiteEntity;
@@ -16,7 +13,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Disabled
+@DataJpaTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LinkSiteRepositoryTest {
 

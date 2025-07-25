@@ -23,6 +23,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
+/**
+ * @ExtendWith(MockitoExtension.class) + @Mock - создают МОК для unit-тестов,
+ *      управляемый JUnit и Mockito (но он не внедряется в Spring-контекст)
+ */
 @ExtendWith(MockitoExtension.class)
 class SiteServiceTest {
 
