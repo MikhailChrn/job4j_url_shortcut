@@ -112,9 +112,22 @@ public class SiteServiceImpl implements SiteService {
                 link.getCode(), username);
     }
 
+    /**
+     * Метод извлекает из базы требуемую ссылку, инкрементирует счётчики для 'link' и 'site'
+     */
     @Override
+    @Transactional
     public String getOriginalLink(String code) {
         Optional<LinkEntity> linkOptional = linkRepository.findByCode(code);
+        if (linkOptional.isPresent()) {
+            int countLink = linkOptional.get().getTotal() + 1;
+            SiteEntity site = linkOptional.get().getSite();
+            int countSite = linkOptional.get().getSite().getTotal() + 1;
+            linkOptional.get().setTotal(countLink);
+            site.setTotal(countSite);
+            linkRepository.save(linkOptional.get());
+            siteRepository.save(site);
+        }
 
         return linkOptional.isEmpty() ? "" : linkOptional.get().getOriginalUrl();
     }

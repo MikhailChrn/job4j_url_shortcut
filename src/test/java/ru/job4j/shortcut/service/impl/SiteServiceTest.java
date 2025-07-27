@@ -99,7 +99,7 @@ class SiteServiceTest {
     }
 
     @Test
-    public void whenConvertLinkButLinkAlreadyExistsThenGetFalse() {
+    void whenConvertLinkButLinkAlreadyExistsThenGetFalse() {
         String requestUrl = "http://example.com/page";
 
         UrlRequestDTO requestDTO = new UrlRequestDTO();
@@ -126,7 +126,7 @@ class SiteServiceTest {
     }
 
     @Test
-    public void whenConvertLinkAndSiteUnauthorizedThenGetFalse() {
+    void whenConvertLinkAndSiteUnauthorizedThenGetFalse() {
         String requestUrl = "http://notallowed.com/page";
 
         PersonEntity person = PersonEntity.builder().username("testuser").id(11).build();
@@ -143,5 +143,32 @@ class SiteServiceTest {
 
         assertEquals(expectedDto, actualResponse);
         verify(linkRepository, never()).save(any(LinkEntity.class));
+    }
+
+    @Test
+    void whenGetOriginalLinkByCodeThenIncrementCounterByOne() {
+        String requestCode = "abc123";
+        String responseUrl = "http://example.com/page";
+        PersonEntity person = PersonEntity.builder().username("testuser").build();
+        SiteEntity site = SiteEntity.builder()
+                .domainName("example.com")
+                .person(person)
+                .total(3).build();
+        LinkEntity link = LinkEntity.builder().
+                code(requestCode)
+                .originalUrl(responseUrl)
+                .site(site)
+                .total(5).build();
+
+        when(linkRepository.findByCode(requestCode)).thenReturn(Optional.of(link));
+
+        String result = siteService.getOriginalLink(requestCode);
+
+        assertEquals(responseUrl, result);
+        assertEquals(6, link.getTotal());
+        assertEquals(4, site.getTotal());
+
+        verify(linkRepository).save(link);
+        verify(siteRepository).save(site);
     }
 }

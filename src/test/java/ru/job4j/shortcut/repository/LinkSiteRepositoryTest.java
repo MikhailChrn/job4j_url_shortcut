@@ -111,17 +111,13 @@ class LinkSiteRepositoryTest {
     }
 
     @Test
-    public void whenCheckLinkByOriginalUrlThenGetCorrectResult() {
-        PersonEntity person1 = PersonEntity.builder()
-                .username("username1").password("password1").build();
-        PersonEntity person2 = PersonEntity.builder()
-                .username("username2").password("password2").build();
+    public void whenCheckLinkByOriginalUrlThenGetCorrectResultThenFindAllBySiteId() {
+        PersonEntity person1 = PersonEntity.builder().username("username1").password("password1").build();
+        PersonEntity person2 = PersonEntity.builder().username("username2").password("password2").build();
         List.of(person2, person1).forEach(personRepository::save);
 
-        SiteEntity site1 = SiteEntity.builder()
-                .domainName("job4j.ru").person(person2).build();
-        SiteEntity site2 = SiteEntity.builder()
-                .domainName("github.com").person(person1).build();
+        SiteEntity site1 = SiteEntity.builder().domainName("job4j.ru").person(person1).build();
+        SiteEntity site2 = SiteEntity.builder().domainName("github.com").person(person2).build();
         List.of(site2, site1).forEach(siteRepository::save);
 
         LinkEntity link11 = LinkEntity.builder()
@@ -132,10 +128,10 @@ class LinkSiteRepositoryTest {
                 .site(site1).build();
         LinkEntity link21 = LinkEntity.builder()
                 .originalUrl("https://github.com/MikhailChrn/job4j_github_analysis/commits/master/")
-                .site(site1).build();
+                .site(site2).build();
         LinkEntity link22 = LinkEntity.builder()
                 .originalUrl("https://github.com/MikhailChrn/job4j_url_shortcut/commits/main/")
-                .site(site1).build();
+                .site(site2).build();
         List.of(link22, link11, link21, link12).forEach(linkRepository::save);
 
         link11.setCode("code11");
@@ -148,5 +144,34 @@ class LinkSiteRepositoryTest {
         assertFalse(linkRepository.existsByOriginalUrl(link21.getOriginalUrl() + "/plus"));
         PersonEntity person21 = linkRepository.findByCode(link21.getCode()).get().getSite().getPerson();
         assertEquals(person21, person2);
+
+        List<LinkEntity> expectedList = List.of(link22, link21);
+        List<LinkEntity> actualList = (List<LinkEntity>) linkRepository.findAllBySiteId(site1.getId());
+
+        assertEquals(actualList.size(), expectedList.size());
+        assertTrue(actualList.containsAll(expectedList));
+    }
+
+    @Test
+    void whenFindAllSitesByPersonIdThenGetListOfSites() {
+        PersonEntity person1 = PersonEntity.builder()
+                .username("username1").password("password1").build();
+        PersonEntity person2 = PersonEntity.builder()
+                .username("username2").password("password2").build();
+        List.of(person2, person1).forEach(personRepository::save);
+
+        SiteEntity site1 = SiteEntity.builder()
+                .domainName("https://web.whatsapp.com/").person(person1).build();
+        SiteEntity site2 = SiteEntity.builder()
+                .domainName("https://job4j.ru/").person(person2).build();
+        SiteEntity site3 = SiteEntity.builder()
+                .domainName("https://github.com/").person(person2).build();
+        List.of(site2, site3, site1).forEach(siteRepository::save);
+
+        List<SiteEntity> expectedList = List.of(site3, site2);
+        List<SiteEntity> actualList = (List<SiteEntity>) siteRepository.findAllByPersonId(person2.getId());
+
+        assertEquals(actualList.size(), expectedList.size());
+        assertTrue(actualList.containsAll(expectedList));
     }
 }
