@@ -10,9 +10,11 @@ import ru.job4j.shortcut.dto.request.UrlRequestDTO;
 import ru.job4j.shortcut.dto.response.ConvertLinkResponseDTO;
 import ru.job4j.shortcut.dto.response.RegisterSiteResponseDTO;
 import ru.job4j.shortcut.dto.response.StatisticResponseDto;
+import ru.job4j.shortcut.dto.response.inner.SiteDto;
 import ru.job4j.shortcut.entity.LinkEntity;
 import ru.job4j.shortcut.entity.PersonEntity;
 import ru.job4j.shortcut.entity.SiteEntity;
+import ru.job4j.shortcut.mapper.SiteMapper;
 import ru.job4j.shortcut.repository.LinkRepository;
 import ru.job4j.shortcut.repository.PersonRepository;
 import ru.job4j.shortcut.repository.SiteRepository;
@@ -20,6 +22,8 @@ import ru.job4j.shortcut.service.SiteService;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -35,6 +39,9 @@ public class SiteServiceImpl implements SiteService {
 
     @Autowired
     private PersonRepository personRepository;
+
+    @Autowired
+    private SiteMapper siteMapper;
 
     private final Hashids hashids = new Hashids("some salt", 7);
 
@@ -74,8 +81,8 @@ public class SiteServiceImpl implements SiteService {
      * Флаг 'status' указывает, что регистрация выполнена,
      * false - если ссылка уже есть в системе, или отсутствует соответствующее доменное имя
      * (Выполняются проверки:
-     *      - наличие 'site';
-     *      - отсутствие 'link';
+     * - наличие 'site';
+     * - отсутствие 'link';
      */
     @Override
     @Transactional
@@ -113,7 +120,8 @@ public class SiteServiceImpl implements SiteService {
     }
 
     /**
-     * Метод извлекает из базы требуемую ссылку, инкрементирует счётчики для 'link' и 'site'
+     * Метод извлекает из базы требуемую ссылку,
+     * инкрементирует счётчики для 'link' и 'site'
      */
     @Override
     @Transactional
@@ -133,25 +141,39 @@ public class SiteServiceImpl implements SiteService {
     }
 
     /**
-     * Метод используется для пользователей 'ROLE_ADMIN', возвращает статистику запросов по всем 'site'
+     * Метод используется для пользователей 'ROLE_USER',
+     * возвращает статистику запросов по всем принадлежащим пользователю 'site'
      */
     @Override
+    @Transactional
     public StatisticResponseDto getStatisticByUsername(String username) {
-        /**
-         * TODO сбор статистики
-         */
-        return null;
+        Optional<PersonEntity> optionalPerson = personRepository.findByUsername(username);
+        if (optionalPerson.isEmpty()) {
+            return new StatisticResponseDto();
+        }
+
+        List<SiteDto> sites = new ArrayList<>();
+        siteRepository.findAllByPersonId(optionalPerson.get().getId()).stream()
+                .map(siteMapper::getSiteDtoFromEntity)
+                .forEach(sites::add);
+
+        return new StatisticResponseDto(sites);
     }
 
     /**
-     * Метод используется для пользователей 'ROLE_ADMIN', возвращает статистику запросов по всем 'site'
+     * Метод используется для пользователей 'ROLE_ADMIN',
+     * возвращает статистику запросов по всем 'site'
      */
     @Override
+    @Transactional
     public StatisticResponseDto getAllStatistic() {
-        /**
-         * TODO сбор статистики
-         */
-        return null;
+        List<SiteDto> sites = new ArrayList<>();
+
+        siteRepository.findAll().stream()
+                .map(siteMapper::getSiteDtoFromEntity)
+                .forEach(sites::add);
+
+        return new StatisticResponseDto(sites);
     }
 
     /**

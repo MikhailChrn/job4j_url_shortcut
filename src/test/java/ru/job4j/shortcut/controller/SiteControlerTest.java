@@ -1,7 +1,6 @@
 package ru.job4j.shortcut.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.junit.jupiter.api.TestInstance;
@@ -9,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
@@ -21,14 +19,21 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.job4j.shortcut.dto.request.UrlRequestDTO;
 import ru.job4j.shortcut.dto.response.ConvertLinkResponseDTO;
 import ru.job4j.shortcut.dto.response.RegisterSiteResponseDTO;
+import ru.job4j.shortcut.dto.response.StatisticResponseDto;
+import ru.job4j.shortcut.dto.response.inner.SiteDto;
+import ru.job4j.shortcut.entity.ERole;
+import ru.job4j.shortcut.service.PersonService;
 import ru.job4j.shortcut.service.SiteService;
 
 import java.net.URL;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -45,6 +50,9 @@ class SiteControlerTest {
     @Autowired
     SiteService siteService;
 
+    @Autowired
+    PersonService personService;
+
     @TestConfiguration
     static class MockConfig {
 
@@ -52,6 +60,12 @@ class SiteControlerTest {
         SiteService siteService() {
             return mock(SiteService.class);
         }
+
+        @Bean
+        PersonService personService() {
+            return mock(PersonService.class);
+        }
+
     }
 
     @Test
@@ -132,5 +146,36 @@ class SiteControlerTest {
                 .andExpect(status().isAccepted());
 
         verify(siteService).convertLink(any(UrlRequestDTO.class), eq(username));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void whenGetStatisticByAdminThenReturnAllStatistics() throws Exception {
+        List<SiteDto> sites = List.of(new SiteDto("example.site", 7));
+        StatisticResponseDto expectedResponse = new StatisticResponseDto(sites);
+
+        when(personService.hasRole(ERole.ROLE_ADMIN.name())).thenReturn(true);
+        when(siteService.getAllStatistic()).thenReturn(expectedResponse);
+
+        mockMvc.perform(get("/api/site/statistic"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sites").exists());
+
+        verify(siteService).getAllStatistic();
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = "USER")
+    void whenGetStatisticByUserThenReturnUserStatistics() throws Exception {
+        List<SiteDto> sites = List.of(new SiteDto("example.site", 7));
+        StatisticResponseDto expectedResponse = new StatisticResponseDto(sites);
+        when(personService.hasRole(ERole.ROLE_ADMIN.name())).thenReturn(false);
+        when(siteService.getStatisticByUsername("user")).thenReturn(expectedResponse);
+
+        mockMvc.perform(get("/api/site/statistic"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sites").exists());
+
+        verify(siteService).getStatisticByUsername("user");
     }
 }

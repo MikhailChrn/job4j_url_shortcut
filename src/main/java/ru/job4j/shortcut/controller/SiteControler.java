@@ -71,10 +71,9 @@ public class SiteControler {
     @GetMapping("/statistic")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<StatisticResponseDto> getStatistic(
-            Authentication authentication,
-            @RequestBody UrlRequestDTO registerSiteDTO) {
+            Authentication authentication) {
 
-        if (PersonService.hasRole(ERole.ROLE_ADMIN.name())) {
+        if (personService.hasRole(ERole.ROLE_ADMIN.name())) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(siteService.getAllStatistic());
         }

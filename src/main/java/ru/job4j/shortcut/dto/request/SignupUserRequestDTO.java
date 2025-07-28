@@ -23,5 +23,4 @@ public class SignupUserRequestDTO {
 
     private Set<String> roles;
 
-
 }

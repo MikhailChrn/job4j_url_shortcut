@@ -9,13 +9,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.job4j.shortcut.dto.request.UrlRequestDTO;
 import ru.job4j.shortcut.dto.response.ConvertLinkResponseDTO;
 import ru.job4j.shortcut.dto.response.RegisterSiteResponseDTO;
+import ru.job4j.shortcut.dto.response.StatisticResponseDto;
+import ru.job4j.shortcut.dto.response.inner.SiteDto;
 import ru.job4j.shortcut.entity.LinkEntity;
 import ru.job4j.shortcut.entity.PersonEntity;
 import ru.job4j.shortcut.entity.SiteEntity;
+import ru.job4j.shortcut.mapper.SiteMapper;
 import ru.job4j.shortcut.repository.LinkRepository;
 import ru.job4j.shortcut.repository.PersonRepository;
 import ru.job4j.shortcut.repository.SiteRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,6 +42,9 @@ class SiteServiceTest {
 
     @Mock
     LinkRepository linkRepository;
+
+    @Mock
+    SiteMapper siteMapper;
 
     @InjectMocks
     SiteServiceImpl siteService;
@@ -170,5 +177,41 @@ class SiteServiceTest {
 
         verify(linkRepository).save(link);
         verify(siteRepository).save(site);
+    }
+
+    @Test
+    void getStatisticByUsernameWhenUserExistsWithSitesThenReturnResponseWithSites() {
+        String username = "userWithSites";
+        PersonEntity person = PersonEntity.builder().id(11).username(username).build();
+
+        SiteEntity siteEntity1 = SiteEntity.builder()
+                .domainName("github.com")
+                .person(person)
+                .total(5).build();
+        SiteEntity siteEntity2 = SiteEntity.builder()
+                .domainName("gitverse.ru")
+                .person(person)
+                .total(7).build();
+        List<SiteEntity> siteEntities = List.of(siteEntity1, siteEntity2);
+
+        SiteDto siteDto1 = new SiteDto();
+        SiteDto siteDto2 = new SiteDto();
+
+        when(personRepository.findByUsername(any(String.class))).thenReturn(Optional.of(person));
+        when(siteRepository.findAllByPersonId(anyInt())).thenReturn(siteEntities);
+        when(siteMapper.getSiteDtoFromEntity(siteEntity1)).thenReturn(siteDto1);
+        when(siteMapper.getSiteDtoFromEntity(siteEntity2)).thenReturn(siteDto2);
+
+        StatisticResponseDto result = siteService.getStatisticByUsername(username);
+
+        assertNotNull(result);
+        assertNotNull(result.getSites());
+        assertEquals(2, result.getSites().size());
+        assertTrue(result.getSites().containsAll(List.of(siteDto1, siteDto2)));
+
+        verify(personRepository).findByUsername(username);
+        verify(siteRepository).findAllByPersonId(person.getId());
+        verify(siteMapper).getSiteDtoFromEntity(siteEntity1);
+        verify(siteMapper).getSiteDtoFromEntity(siteEntity2);
     }
 }

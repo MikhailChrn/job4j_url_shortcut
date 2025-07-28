@@ -75,8 +75,16 @@ public class PersonServiceImpl implements PersonService {
     /**
      * Метод проверяет наличие роли
      */
-    @Override
-    public boolean hasRole(String username, ERole role) {
-        return personRepository.hasRole(username, role.name());
+    public boolean hasRole(String role) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            for (GrantedAuthority authority : authentication.getAuthorities()) {
+                if (role.equals(authority.getAuthority())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

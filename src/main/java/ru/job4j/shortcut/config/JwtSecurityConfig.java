@@ -90,7 +90,6 @@ public class JwtSecurityConfig {
 
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/api/auth/**").permitAll()
-                                .requestMatchers("/api/test/**").permitAll()
                                 .requestMatchers("/redirect/**").permitAll()
                                 .anyRequest().authenticated()
                 )
