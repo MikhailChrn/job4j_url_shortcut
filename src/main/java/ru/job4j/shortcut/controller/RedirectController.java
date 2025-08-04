@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.job4j.shortcut.service.SiteService;
 
 import java.net.URI;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/redirect")
@@ -25,12 +26,12 @@ public class RedirectController {
     @GetMapping("/{code}")
     public ResponseEntity<Void> redirect(@PathVariable("code") String code) {
 
-        String originalUrl = siteService.getOriginalLink(code);
+        Optional<String> originalUrl = siteService.getOriginalLink(code);
 
         if (!originalUrl.isEmpty()) {
             return ResponseEntity
                     .status(HttpStatus.FOUND)
-                    .location(URI.create(originalUrl))
+                    .location(URI.create(originalUrl.get()))
                     .build();
         } else {
 

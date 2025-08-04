@@ -15,6 +15,8 @@ import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.job4j.shortcut.service.SiteService;
 
+import java.util.Optional;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -54,7 +56,7 @@ class RedirectControllerTest {
         String codeRequest = "abc123";
         String urlResponse = "https://example.com/example";
 
-        when(siteService.getOriginalLink(codeRequest)).thenReturn(urlResponse);
+        when(siteService.getOriginalLink(codeRequest)).thenReturn(Optional.of(urlResponse));
 
         mockMvc.perform(get("/redirect/" + codeRequest))
                 .andExpect(status().isFound())
@@ -66,7 +68,7 @@ class RedirectControllerTest {
     void whenInvalidCodeThenReturn404() throws Exception {
         String codeRequest = "invalidCode";
 
-        when(siteService.getOriginalLink(codeRequest)).thenReturn("");
+        when(siteService.getOriginalLink(codeRequest)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/redirect/" + codeRequest))
                 .andExpect(status().isNotFound());

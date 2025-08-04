@@ -5,13 +5,15 @@ import ru.job4j.shortcut.dto.response.ConvertLinkResponseDTO;
 import ru.job4j.shortcut.dto.response.RegisterSiteResponseDTO;
 import ru.job4j.shortcut.dto.response.StatisticResponseDto;
 
+import java.util.Optional;
+
 public interface SiteService {
 
     RegisterSiteResponseDTO registerSite(UrlRequestDTO urlRequestDTO, String username);
 
     ConvertLinkResponseDTO convertLink(UrlRequestDTO urlRequestDTO, String username);
 
-    String getOriginalLink(String code);
+    Optional<String> getOriginalLink(String code);
 
     StatisticResponseDto getStatisticByUsername(String username);
 

@@ -36,12 +36,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Optional<PersonEntity> personEntityOptional =
                 personRepository.findByUsername(username);
 
-        if (personEntityOptional.isPresent()) {
-            return UserDetailsImpl.build(personEntityOptional.get());
-
-        } else {
+        if (personEntityOptional.isEmpty()) {
             throw new UsernameNotFoundException("Error: person not found !");
         }
+
+        return UserDetailsImpl.build(personEntityOptional.get());
+
     }
 
     @PostConstruct

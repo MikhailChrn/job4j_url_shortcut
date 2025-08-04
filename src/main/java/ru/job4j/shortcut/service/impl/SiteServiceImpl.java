@@ -125,7 +125,7 @@ public class SiteServiceImpl implements SiteService {
      */
     @Override
     @Transactional
-    public String getOriginalLink(String code) {
+    public Optional<String> getOriginalLink(String code) {
         Optional<LinkEntity> linkOptional = linkRepository.findByCode(code);
         if (linkOptional.isPresent()) {
             int countLink = linkOptional.get().getTotal() + 1;
@@ -137,7 +137,9 @@ public class SiteServiceImpl implements SiteService {
             siteRepository.save(site);
         }
 
-        return linkOptional.isEmpty() ? "" : linkOptional.get().getOriginalUrl();
+        return linkOptional.isEmpty()
+                ? Optional.empty()
+                : Optional.of(linkOptional.get().getOriginalUrl());
     }
 
     /**

@@ -169,9 +169,9 @@ class SiteServiceTest {
 
         when(linkRepository.findByCode(requestCode)).thenReturn(Optional.of(link));
 
-        String result = siteService.getOriginalLink(requestCode);
+        Optional<String> result = siteService.getOriginalLink(requestCode);
 
-        assertEquals(responseUrl, result);
+        assertEquals(responseUrl, result.get());
         assertEquals(6, link.getTotal());
         assertEquals(4, site.getTotal());
 
