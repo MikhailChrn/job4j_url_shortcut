@@ -60,7 +60,7 @@ class SiteServiceTest {
                 .person(person).build();
 
         when(personRepository.findByUsername(any(String.class))).thenReturn(Optional.of(person));
-        when(siteRepository.existsByDomainNameAndPersonId(any(String.class), anyInt())).thenReturn(false);
+        when(siteRepository.existsByDomainName(any(String.class))).thenReturn(false);
 
         RegisterSiteResponseDTO expectedDto = new RegisterSiteResponseDTO(true,
                 site.getDomainName(), person.getUsername());
@@ -83,10 +83,9 @@ class SiteServiceTest {
         SiteEntity site = SiteEntity.builder().domainName(domainName)
                 .person(person).build();
 
-        when(siteRepository.existsByDomainNameAndPersonId(
-                any(String.class), any(Integer.class))).thenReturn(true);
+        when(siteRepository.existsByDomainName(
+                any(String.class))).thenReturn(true);
         when(linkRepository.existsByOriginalUrl(any(String.class))).thenReturn(false);
-        when(personRepository.findByUsername(any(String.class))).thenReturn(Optional.of(person));
         when(siteRepository.findByDomainName(any(String.class))).thenReturn(Optional.of(site));
         when(linkRepository.save(any(LinkEntity.class)))
                 .thenAnswer(invocation -> {
@@ -108,16 +107,18 @@ class SiteServiceTest {
     @Test
     void whenConvertLinkButLinkAlreadyExistsThenGetFalse() {
         String requestUrl = "http://example.com/page";
+        String domainName = "example.com";
+        String username = "testuser";
 
         UrlRequestDTO requestDTO = new UrlRequestDTO();
         requestDTO.setUrl(requestUrl);
 
-        PersonEntity person = PersonEntity.builder().username("testuser").id(11).build();
+        PersonEntity person = PersonEntity.builder().username(username).id(11).build();
+        SiteEntity site = SiteEntity.builder().domainName(domainName).person(person).build();
 
-        when(personRepository.findByUsername(any(String.class)))
-                .thenReturn(Optional.of(person));
-        when(siteRepository.existsByDomainNameAndPersonId("example.com", person.getId()))
+        when(siteRepository.existsByDomainName(domainName))
                 .thenReturn(true);
+        when(siteRepository.findByDomainName(anyString())).thenReturn(Optional.ofNullable(site));
         when(linkRepository.existsByOriginalUrl(requestUrl)).thenReturn(true);
 
         LinkEntity existingLink = LinkEntity.builder().originalUrl(requestUrl).code("abc123").build();
@@ -135,18 +136,15 @@ class SiteServiceTest {
     @Test
     void whenConvertLinkAndSiteUnauthorizedThenGetFalse() {
         String requestUrl = "http://notallowed.com/page";
+        String username = "testuser";
 
-        PersonEntity person = PersonEntity.builder().username("testuser").id(11).build();
-
-        when(personRepository.findByUsername(person.getUsername()))
-                .thenReturn(Optional.of(person));
-        when(siteRepository.existsByDomainNameAndPersonId("notallowed.com", person.getId()))
+        when(siteRepository.existsByDomainName("notallowed.com"))
                 .thenReturn(false);
 
         ConvertLinkResponseDTO expectedDto = new ConvertLinkResponseDTO(false,
                 null, null);
         ConvertLinkResponseDTO actualResponse = siteService.convertLink(
-                new UrlRequestDTO(requestUrl), person.getUsername());
+                new UrlRequestDTO(requestUrl), username);
 
         assertEquals(expectedDto, actualResponse);
         verify(linkRepository, never()).save(any(LinkEntity.class));

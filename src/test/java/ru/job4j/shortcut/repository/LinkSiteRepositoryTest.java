@@ -87,27 +87,25 @@ class LinkSiteRepositoryTest {
     }
 
     @Test
-    public void whenCheckSiteByDomainNameAndPersonThenGetCorrectResults() {
-        PersonEntity person1 = PersonEntity.builder()
+    public void whenCheckSiteByDomainNameThenGetCorrectResults() {
+        PersonEntity person = PersonEntity.builder()
                 .username("username1")
                 .password("password1").build();
-        PersonEntity person2 = PersonEntity.builder()
-                .username("username2")
-                .password("password2").build();
-        List.of(person2, person1).forEach(personRepository::save);
+        personRepository.save(person);
 
         SiteEntity site1 = SiteEntity.builder()
                 .domainName("job4j.ru")
-                .person(person2).build();
+                .person(person).build();
         SiteEntity site2 = SiteEntity.builder()
                 .domainName("github.com")
-                .person(person1).build();
+                .person(person).build();
         List.of(site2, site1).forEach(siteRepository::save);
 
-        assertFalse(siteRepository.existsByDomainNameAndPersonId(site1.getDomainName(), site2.getPerson().getId()));
-        assertFalse(siteRepository.existsByDomainNameAndPersonId(site2.getDomainName(), site1.getPerson().getId()));
-        assertTrue(siteRepository.existsByDomainNameAndPersonId(site2.getDomainName(), site2.getPerson().getId()));
-        assertTrue(siteRepository.existsByDomainNameAndPersonId(site1.getDomainName(), site1.getPerson().getId()));
+        String domainName = "non-existent-website";
+
+        assertTrue(siteRepository.existsByDomainName(site2.getDomainName()));
+        assertFalse(siteRepository.existsByDomainName(domainName));
+        assertTrue(siteRepository.existsByDomainName(site1.getDomainName()));
     }
 
     @Test

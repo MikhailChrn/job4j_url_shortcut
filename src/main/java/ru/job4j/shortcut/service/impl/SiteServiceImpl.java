@@ -46,16 +46,16 @@ public class SiteServiceImpl implements SiteService {
     private final Hashids hashids = new Hashids("some salt", 7);
 
     /**
-     * Метод добавляет в базу доменное имя для сайта с привязкой к пользователю
-     * Флаг 'status' указывает, что регистрация выполнена или нет, false - если сайт уже есть в системе.
+     * Метод добавляет в базу доменное имя для сайта
+     * Флаг 'status' указывает, что регистрация выполнена или нет,
+     * false - если сайт уже есть в системе.
      */
     @Override
     @Transactional
     public RegisterSiteResponseDTO registerSite(UrlRequestDTO urlRequestDTO, String username) {
-        Optional<PersonEntity> personOptional = personRepository.findByUsername(username);
         String domainName = getDomainFromURL(urlRequestDTO.getUrl());
 
-        if (siteRepository.existsByDomainNameAndPersonId(domainName, personOptional.get().getId())) {
+        if (siteRepository.existsByDomainName(domainName)) {
             SiteEntity site = siteRepository.findByDomainName(domainName).get();
             return new RegisterSiteResponseDTO(false,
                     site.getDomainName(),
@@ -82,18 +82,22 @@ public class SiteServiceImpl implements SiteService {
      * false - если ссылка уже есть в системе, или отсутствует соответствующее доменное имя
      * (Выполняются проверки:
      * - наличие 'site';
+     * - принадлежность 'site';
      * - отсутствие 'link';
      */
     @Override
     @Transactional
     public ConvertLinkResponseDTO convertLink(UrlRequestDTO urlRequestDTO, String username) {
-        Optional<PersonEntity> personOptional = personRepository.findByUsername(username);
 
-        if (!siteRepository.existsByDomainNameAndPersonId(
-                getDomainFromURL(urlRequestDTO.getUrl()),
-                personOptional.get().getId())) {
-            return new ConvertLinkResponseDTO(false,
-                    null, null);
+        if (!siteRepository.existsByDomainName(
+                getDomainFromURL(urlRequestDTO.getUrl()))) {
+            return new ConvertLinkResponseDTO(false, null, null);
+        }
+
+        SiteEntity site = siteRepository.findByDomainName(getDomainFromURL(urlRequestDTO.getUrl())).get();
+
+        if (!site.getPerson().getUsername().equals(username)) {
+            return new ConvertLinkResponseDTO(false, null, null);
         }
 
         if (linkRepository.existsByOriginalUrl(urlRequestDTO.getUrl())) {
@@ -101,8 +105,6 @@ public class SiteServiceImpl implements SiteService {
             return new ConvertLinkResponseDTO(false,
                     link.getCode(), username);
         }
-
-        SiteEntity site = siteRepository.findByDomainName(getDomainFromURL(urlRequestDTO.getUrl())).get();
 
         LinkEntity link = LinkEntity.builder()
                 .originalUrl(urlRequestDTO.getUrl())

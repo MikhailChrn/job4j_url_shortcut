@@ -12,7 +12,7 @@ public interface SiteRepository extends JpaRepository<SiteEntity, Integer> {
 
     Optional<SiteEntity> findByDomainName(String domainName);
 
-    boolean existsByDomainNameAndPersonId(String domainName, Integer id);
+    boolean existsByDomainName(String domainName);
 
     Collection<SiteEntity> findAllByPersonId(Integer id);
 
