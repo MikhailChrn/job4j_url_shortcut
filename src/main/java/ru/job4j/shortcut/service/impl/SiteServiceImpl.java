@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hashids.Hashids;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.job4j.shortcut.dto.request.UrlRequestDTO;
@@ -14,6 +15,8 @@ import ru.job4j.shortcut.dto.response.inner.SiteDto;
 import ru.job4j.shortcut.entity.LinkEntity;
 import ru.job4j.shortcut.entity.PersonEntity;
 import ru.job4j.shortcut.entity.SiteEntity;
+import ru.job4j.shortcut.exception.LinkAlreadyExistsException;
+import ru.job4j.shortcut.exception.SiteAlreadyExistsException;
 import ru.job4j.shortcut.mapper.SiteMapper;
 import ru.job4j.shortcut.repository.LinkRepository;
 import ru.job4j.shortcut.repository.PersonRepository;
@@ -45,14 +48,9 @@ public class SiteServiceImpl implements SiteService {
 
     private final Hashids hashids = new Hashids("some salt", 7);
 
-    /**
-     * Метод добавляет в базу доменное имя для сайта
-     * Флаг 'status' указывает, что регистрация выполнена или нет,
-     * false - если сайт уже есть в системе.
-     */
-    @Override
+    @Deprecated
     @Transactional
-    public RegisterSiteResponseDTO registerSite(UrlRequestDTO urlRequestDTO, String username) {
+    public RegisterSiteResponseDTO registerSiteUnused(UrlRequestDTO urlRequestDTO, String username) {
         String domainName = getDomainFromURL(urlRequestDTO.getUrl());
 
         if (siteRepository.existsByDomainName(domainName)) {
@@ -77,17 +75,42 @@ public class SiteServiceImpl implements SiteService {
     }
 
     /**
-     * Метод добавляет в базу ссылку на конечную страницу с привязкой к пользователю.
-     * Флаг 'status' указывает, что регистрация выполнена,
-     * false - если ссылка уже есть в системе, или отсутствует соответствующее доменное имя
-     * (Выполняются проверки:
-     * - наличие 'site';
-     * - принадлежность 'site';
-     * - отсутствие 'link';
+     * Метод добавляет в базу доменное имя для сайта.
+     * Если сайт уже существует, выбрасывает исключение.
      */
     @Override
     @Transactional
-    public ConvertLinkResponseDTO convertLink(UrlRequestDTO urlRequestDTO, String username) {
+    public RegisterSiteResponseDTO registerSite(UrlRequestDTO urlRequestDTO, String username) {
+        String domainName = getDomainFromURL(urlRequestDTO.getUrl());
+        PersonEntity person = personRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+        SiteEntity site = SiteEntity.builder()
+                .domainName(domainName)
+                .person(person)
+                .total(0)
+                .build();
+
+        try {
+            siteRepository.save(site);
+
+            return new RegisterSiteResponseDTO(true,
+                    site.getDomainName(),
+                    person.getUsername());
+
+        } catch (DataIntegrityViolationException e) {
+            SiteEntity existingSite = siteRepository.findByDomainName(domainName)
+                    .orElseThrow(() -> new SiteAlreadyExistsException(domainName));
+
+            return new RegisterSiteResponseDTO(false,
+                    existingSite.getDomainName(),
+                    existingSite.getPerson().getUsername());
+        }
+    }
+
+    @Deprecated
+    @Transactional
+    public ConvertLinkResponseDTO convertLinkUnused(UrlRequestDTO urlRequestDTO, String username) {
 
         if (!siteRepository.existsByDomainName(
                 getDomainFromURL(urlRequestDTO.getUrl()))) {
@@ -119,6 +142,52 @@ public class SiteServiceImpl implements SiteService {
 
         return new ConvertLinkResponseDTO(true,
                 link.getCode(), username);
+    }
+
+    /**
+     * Метод добавляет в базу 'link' на конечную страницу с привязкой к пользователю.
+     * Флаг 'status' указывает, что регистрация выполнена,
+     * false - если 'link' уже есть в системе, или отсутствует соответствующее доменное имя 'site'
+     * (Выполняются проверки:
+     * - наличие 'site';
+     * - принадлежность собственника 'site' пользователю 'username';)
+     *
+     * Если 'link' уже существует, выбрасывает исключение.
+     */
+    @Override
+    @Transactional
+    public ConvertLinkResponseDTO convertLink(UrlRequestDTO urlRequestDTO, String username) {
+
+        if (!siteRepository.existsByDomainName(
+                getDomainFromURL(urlRequestDTO.getUrl()))) {
+            return new ConvertLinkResponseDTO(false, null, null);
+        }
+
+        SiteEntity site = siteRepository.findByDomainName(getDomainFromURL(urlRequestDTO.getUrl())).get();
+
+        if (!site.getPerson().getUsername().equals(username)) {
+            return new ConvertLinkResponseDTO(false, null, null);
+        }
+
+        LinkEntity link = LinkEntity.builder()
+                .originalUrl(urlRequestDTO.getUrl())
+                .site(site)
+                .total(0).build();
+
+        try {
+            linkRepository.save(link);
+            String code = getAssociatedCodeFromId(link.getId());
+            link.setCode(code);
+            return new ConvertLinkResponseDTO(true,
+                    link.getCode(), username);
+
+        } catch (DataIntegrityViolationException e) {
+            LinkEntity existingLink = linkRepository.findByOriginalUrl(urlRequestDTO.getUrl())
+                    .orElseThrow(() -> new LinkAlreadyExistsException(urlRequestDTO.getUrl()));
+
+            return new ConvertLinkResponseDTO(false,
+                    existingLink.getCode(), username);
+        }
     }
 
     /**

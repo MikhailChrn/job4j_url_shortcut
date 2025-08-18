@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import ru.job4j.shortcut.dto.request.UrlRequestDTO;
 import ru.job4j.shortcut.dto.response.ConvertLinkResponseDTO;
 import ru.job4j.shortcut.dto.response.RegisterSiteResponseDTO;
@@ -60,7 +61,6 @@ class SiteServiceTest {
                 .person(person).build();
 
         when(personRepository.findByUsername(any(String.class))).thenReturn(Optional.of(person));
-        when(siteRepository.existsByDomainName(any(String.class))).thenReturn(false);
 
         RegisterSiteResponseDTO expectedDto = new RegisterSiteResponseDTO(true,
                 site.getDomainName(), person.getUsername());
@@ -85,7 +85,6 @@ class SiteServiceTest {
 
         when(siteRepository.existsByDomainName(
                 any(String.class))).thenReturn(true);
-        when(linkRepository.existsByOriginalUrl(any(String.class))).thenReturn(false);
         when(siteRepository.findByDomainName(any(String.class))).thenReturn(Optional.of(site));
         when(linkRepository.save(any(LinkEntity.class)))
                 .thenAnswer(invocation -> {
@@ -101,7 +100,7 @@ class SiteServiceTest {
                 new UrlRequestDTO(urlLinkRequest), person.getUsername());
 
         assertEquals(expectedDto, actualResponse);
-        verify(linkRepository, times(2)).save(any(LinkEntity.class));
+        verify(linkRepository, times(1)).save(any(LinkEntity.class));
     }
 
     @Test
@@ -119,9 +118,10 @@ class SiteServiceTest {
         when(siteRepository.existsByDomainName(domainName))
                 .thenReturn(true);
         when(siteRepository.findByDomainName(anyString())).thenReturn(Optional.ofNullable(site));
-        when(linkRepository.existsByOriginalUrl(requestUrl)).thenReturn(true);
 
         LinkEntity existingLink = LinkEntity.builder().originalUrl(requestUrl).code("abc123").build();
+        when(linkRepository.save(any(LinkEntity.class)))
+                .thenThrow(new DataIntegrityViolationException("Link already exists"));
         when(linkRepository.findByOriginalUrl(requestUrl)).thenReturn(Optional.of(existingLink));
 
         ConvertLinkResponseDTO expectedDto = new ConvertLinkResponseDTO(false,
@@ -130,7 +130,7 @@ class SiteServiceTest {
                 new UrlRequestDTO(requestUrl), person.getUsername());
 
         assertEquals(expectedDto, actualResponse);
-        verify(linkRepository, never()).save(any(LinkEntity.class));
+        verify(linkRepository, times(1)).save(any(LinkEntity.class));
     }
 
     @Test
